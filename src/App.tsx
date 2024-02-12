@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import './App.css';
 import useBooks from './hooks/useBooks';
+import { inputTriggerLength } from './utils/constants';
 
 const App = () => {
 	const [query, setQuery] = useState('');
@@ -31,7 +32,7 @@ const App = () => {
 	return (
 		<>
 			<input
-				// placeholder='type at least 3 letters'
+				placeholder={`Type at least ${inputTriggerLength} letters`}
 				className='searchInput'
 				value={query}
 				type='text'
