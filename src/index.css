@@ -1,13 +1,9 @@
 :root {
 	--color-primary: #518abe;
 	--color-body: #3a3a3a;
-
-	/* --color-secondary: #00d9ff;
-	--color-accent: #ff3400;
-	--color-headings: #1b0760;
-	/* --color-body: #3a3a3a; */
-	/* --border-color: #ccc;
-	--border-radius: 30px; */
+	--light-gray: #999;
+	--button-clear-width: 3.5rem;
+	--input-border-radius: 4px;
 }
 
 *,
@@ -43,14 +39,6 @@ body {
 	flex-grow: 1;
 }
 
-.searchInput {
-	padding: 1rem;
-	border-color: var(--color-primary);
-	outline: 0;
-	border-radius: 4px;
-	color: var(--color-body);
-}
-
 *::-webkit-scrollbar {
 	width: 1.2rem;
 }
@@ -60,9 +48,67 @@ body {
 	background-color: var(--color-body);
 	border: 2px solid var(--color-primary);
 	box-shadow: inset 0 0 6px rgba(var(--color-primary), 0.3);
+	border-bottom: 0;
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
 }
 
 *::-webkit-scrollbar-thumb {
 	border-radius: 8px;
 	background-color: var(--color-primary);
+}
+
+.search-input__container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.search-input {
+	position: relative;
+	display: flex;
+}
+
+.search-input__input {
+	padding: 1rem;
+	padding-left: calc(var(--button-clear-width) + 1rem);
+	border: 2px solid var(--color-primary);
+	outline: 0;
+	border-radius: var(--input-border-radius);
+	color: var(--color-body);
+	flex-grow: 1;
+}
+
+.search-input__clear-button {
+	position: absolute;
+	height: 100%;
+	width: var(--button-clear-width);
+	cursor: pointer;
+	background-color: transparent;
+	border: 2px solid var(--color-primary);
+	border-top-left-radius: var(--input-border-radius);
+	border-bottom-left-radius: var(--input-border-radius);
+}
+
+.search-input__clear-button:disabled {
+	border-right-color: var(--light-gray);
+	cursor: not-allowed;
+}
+
+.search-input__clear-button:disabled {
+	border-right-color: var(--light-gray);
+	cursor: auto;
+}
+
+.search-input__clear-button[data-is-loading='true'] {
+	cursor: progress;
+}
+
+.search-input__clear-button svg {
+	font-size: 2rem;
+	color: var(--color-primary);
+}
+
+.search-input__clear-button:disabled svg {
+	color: var(--light-gray);
 }
