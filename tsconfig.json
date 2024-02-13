@@ -18,7 +18,8 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"types": ["@testing-library/jest-dom"] // en los tests si no sale un error ej. toBeInTheDocument()
 	},
 	"include": ["src"],
 	"references": [{ "path": "./tsconfig.node.json" }]
