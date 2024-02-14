@@ -1,4 +1,10 @@
-import { MouseEventHandler, useCallback, useRef, useState } from 'react';
+import {
+	Fragment,
+	MouseEventHandler,
+	useCallback,
+	useRef,
+	useState,
+} from 'react';
 import './App.css';
 import Icon from './components/Icon';
 import useBooks from './hooks/useBooks';
@@ -6,13 +12,13 @@ import { inputTriggerLength } from './utils/constants';
 
 const App = () => {
 	const [query, setQuery] = useState('');
-	const [page, setPage] = useState(1);
-	const { books, isLoading, error, hasMore } = useBooks(query, page);
+	const { data, fetchNextPage, hasNextPage, isFetching } = useBooks(query);
 
 	const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setQuery(e.target.value);
-		setPage(1);
 	};
+
+	const isLoading = isFetching && query.length >= inputTriggerLength;
 
 	const observer = useRef<IntersectionObserver>();
 
@@ -21,13 +27,13 @@ const App = () => {
 			if (isLoading) return;
 			if (observer.current) observer.current.disconnect();
 			observer.current = new IntersectionObserver(([entry]) => {
-				if (entry.isIntersecting && hasMore) {
-					setPage((prevPage) => prevPage + 1);
+				if (entry.isIntersecting && hasNextPage) {
+					fetchNextPage();
 				}
 			});
 			if (node) observer.current.observe(node);
 		},
-		[isLoading, hasMore]
+		[isLoading, hasNextPage, fetchNextPage]
 	);
 
 	const clearText: MouseEventHandler<HTMLButtonElement> = () => setQuery('');
@@ -60,23 +66,25 @@ const App = () => {
 			</div>
 			<div className='book-list'>
 				<ul>
-					{books.map((book, index) => {
-						const offset = 10;
-						const isInfiniteScrollMarker =
-							books.length - offset === index + 1;
-						const ref = isInfiniteScrollMarker
-							? lastBookElementRef
-							: undefined;
-
-						return (
-							<li ref={ref} key={book.key}>
-								{book.title}
-							</li>
-						);
-					})}
+					{data?.pages.map((page, index) => (
+						<Fragment key={index}>
+							{page.docs.map((book, bookIndex) => {
+								const offset = 0;
+								const isInfiniteScrollMarker =
+									page.docs.length - offset === bookIndex + 1;
+								const ref = isInfiniteScrollMarker
+									? lastBookElementRef
+									: undefined;
+								return (
+									<li ref={ref} key={book.key}>
+										{book.title}
+									</li>
+								);
+							})}
+						</Fragment>
+					))}
 				</ul>
 				{isLoading && <p>Loading ...</p>}
-				{error && <p>error</p>}
 			</div>
 		</>
 	);

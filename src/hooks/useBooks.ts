@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import apiClient, { AxiosError, CanceledError } from '../services/apiClient';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import apiClient from '../services/apiClient';
 import endpoints from '../services/endpoints';
 import { inputTriggerLength } from '../utils/constants';
 
@@ -13,45 +13,35 @@ interface FetchItemsResponse<U> {
 	numFound: number;
 }
 
-const useBooks = (query: string, page: number, pageLimit = 100) => {
-	const [books, setBooks] = useState<Book[]>([]);
-	const [isLoading, setLoading] = useState(false);
-	const [error, setError] = useState('');
-	const [hasMore, setHasMore] = useState(false);
-
-	useEffect(() => {
-		if (query.length >= inputTriggerLength) {
-			setLoading(true);
-			setError('');
-			const controller = new AbortController();
-			apiClient
-				.get<FetchItemsResponse<Book>>(endpoints.books, {
-					params: {
-						q: query,
-						page,
-						limit: pageLimit,
-						fields: 'key,title,author_name',
-					},
-					signal: controller.signal,
-				})
-				.then(({ data }) => {
-					setBooks((previousData) =>
-						page === 1 ? data.docs : [...previousData, ...data.docs]
-					);
-					const currentResultsCount =
-						(page - 1) * pageLimit + data.docs.length;
-					setHasMore(currentResultsCount < data.numFound);
-					setLoading(false);
-				})
-				.catch((error: AxiosError) => {
-					if (error instanceof CanceledError) return;
-					setLoading(false);
-					setError(error.message);
-				});
-			return () => controller.abort();
-		}
-	}, [query, page, pageLimit]);
-	return { books, isLoading, error, hasMore };
+const useBooks = (query: string, pageLimit = 100) => {
+	const shouldFetch = query.length >= inputTriggerLength;
+	return useInfiniteQuery<FetchItemsResponse<Book>, Error>({
+		queryKey: ['books', query],
+		queryFn: shouldFetch
+			? ({ pageParam, signal }) =>
+					apiClient
+						.get<FetchItemsResponse<Book>>(endpoints.books, {
+							params: {
+								q: query,
+								page: pageParam,
+								limit: pageLimit,
+								fields: 'key,title,author_name',
+							},
+							signal,
+						})
+						.then((res) => res.data)
+			: undefined,
+		getNextPageParam: (lastPage, allPages) => {
+			const currentPage = allPages.length;
+			const currentResultsCount =
+				(currentPage - 1) * pageLimit + lastPage.docs.length;
+			const hasMore = currentResultsCount < lastPage.numFound;
+			return hasMore ? currentPage + 1 : undefined;
+		},
+		initialPageParam: 1,
+		retry: 3,
+		staleTime: 24 * 60 * 60 * 1000, // 1 day
+	});
 };
 
 export default useBooks;
